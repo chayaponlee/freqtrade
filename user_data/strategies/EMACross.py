@@ -8,6 +8,10 @@ from pandas import DataFrame
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
+"""
+Using config_binance_live.json
+"""
+
 
 class EMACross(IStrategy):
     """

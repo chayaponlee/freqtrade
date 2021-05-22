@@ -13,6 +13,11 @@ Backtest results
 Best shit so far - 20,170 cross 
 """
 
+"""
+Using config_binance_live.json
+"""
+
+
 class SMACross(IStrategy):
     """
     Strategy Description:
@@ -56,7 +61,6 @@ class SMACross(IStrategy):
         'stoploss_on_exchange_limit_ratio': 0.98
     }
 
-
     def informative_pairs(self):
         """
         Define additional, informative pair/interval combinations to be cached from the exchange.
@@ -80,7 +84,6 @@ class SMACross(IStrategy):
 
         dataframe['sma_short'] = ta.SMA(dataframe, timeperiod=20)
         dataframe['sma_long'] = ta.SMA(dataframe, timeperiod=60)
-
 
         heikinashi = qtpylib.heikinashi(dataframe)
         dataframe['ha_open'] = heikinashi['open']
@@ -113,7 +116,7 @@ class SMACross(IStrategy):
         dataframe.loc[
             (
                     qtpylib.crossed_above(dataframe['sma_long'], dataframe['sma_short'])
-                     # red bar
+                    # red bar
                     & (dataframe['volume'] > 0)
             ),
             'sell'] = 1
