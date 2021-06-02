@@ -91,10 +91,6 @@ class EMACross(IStrategy):
         dataframe['ema_short'] = ta.EMA(dataframe, timeperiod=self.ma_short_window)
         dataframe['ema_long'] = ta.EMA(dataframe, timeperiod=self.ma_long_window)
 
-        heikinashi = qtpylib.heikinashi(dataframe)
-        dataframe['ha_open'] = heikinashi['open']
-        dataframe['ha_close'] = heikinashi['close']
-
         return dataframe
 
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
