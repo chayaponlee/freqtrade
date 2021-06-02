@@ -3,14 +3,13 @@ from freqtrade.strategy.interface import IStrategy
 from typing import Dict, List
 from functools import reduce
 from pandas import DataFrame
+from datetime import datetime
+from freqtrade.persistence import Trade
+from freqtrade.strategy import stoploss_from_open
 # --------------------------------
 
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
-
-"""
-Using config_binance_live.json
-"""
 
 
 class EMACross(IStrategy):
@@ -30,6 +29,9 @@ class EMACross(IStrategy):
     # Optimal stoploss designed for the strategy
     # This attribute will be overridden if the config file contains "stoploss"
     stoploss = -0.10
+
+    # Use Custom Stop loss?
+    use_custom_stoploss = True
 
     # Optimal timeframe for the strategy
     timeframe = '1h'
@@ -61,6 +63,10 @@ class EMACross(IStrategy):
         'sell': 'gtc'
     }
 
+    # Moving Average Rolling Windows
+    ma_short_window = 20
+    ma_long_window = 60
+
     def informative_pairs(self):
         """
         Define additional, informative pair/interval combinations to be cached from the exchange.
@@ -82,8 +88,8 @@ class EMACross(IStrategy):
         or your hyperopt configuration, otherwise you will waste your memory and CPU usage.
         """
 
-        dataframe['ema_short'] = ta.EMA(dataframe, timeperiod=20)
-        dataframe['ema_long'] = ta.EMA(dataframe, timeperiod=60)
+        dataframe['ema_short'] = ta.EMA(dataframe, timeperiod=self.ma_short_window)
+        dataframe['ema_long'] = ta.EMA(dataframe, timeperiod=self.ma_long_window)
 
         heikinashi = qtpylib.heikinashi(dataframe)
         dataframe['ha_open'] = heikinashi['open']
@@ -122,3 +128,12 @@ class EMACross(IStrategy):
             'sell'] = 1
 
         return dataframe
+
+    def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
+                        current_rate: float, current_profit: float, **kwargs) -> float:
+        # evaluate highest to lowest, so that highest possible stop is used
+        if current_profit >= 0.3:
+            return stoploss_from_open(0.05, current_profit)
+
+        # return maximum stoploss value, keeping current stoploss price unchanged
+        return 1
